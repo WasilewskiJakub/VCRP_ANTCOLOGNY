@@ -16,7 +16,7 @@ class AntColognyySolver:
         self.maxPathLength = maxPathLength
         self.maxCapacity = maxCapacity 
         self.pheromone = np.ones((n,n))
-        solutionList = []
+        #solutionList = []
         bestSollution = (float("inf"),None)
         for i in range(maxIter):
             antSollution = []
@@ -29,7 +29,7 @@ class AntColognyySolver:
             for i in range(n):
                 for j in range(n):
                     self.updatePheromone(i, j, antSollution)
-            solutionList += antSollution
+            #solutionList += antSollution
         return bestSollution
     
     def ant_sollution(self):
@@ -84,7 +84,7 @@ class AntColognyySolver:
         total_sum = sum(calculateProb(calculatePhi(current_customer,unvisitedPoint), calculateNi(current_customer,unvisitedPoint)) for unvisitedPoint in all_neighbors)
         return calculateProb(calculatePhi(current_customer,next_customer),calculateNi(current_customer,next_customer)) / total_sum
     
-    def updatePheromone(self, current_customer, next_customer, solutions):
+    def updatePheromone(self, current_customer, next_customer, solutions, min_pheromone = float("-inf"), max_pheromone = float("inf")):
         Q = 2 # jais tam wspolczynnik
         p = 0.4 # współczynnik parowania feromonu
         deltaX = 0
@@ -92,12 +92,19 @@ class AntColognyySolver:
             for i in range(len(solution)-1):
                 if solution[1][i] == current_customer and solution[1][i+1] == next_customer:
                     deltaX+= Q/solution[0]
-        self.pheromone[current_customer,next_customer] = (1-p) * self.pheromone[current_customer, next_customer] + deltaX       
+        newValue = (1-p) * self.pheromone[current_customer, next_customer] + deltaX
+        
+        if newValue < min_pheromone:
+            newValue = min_pheromone
+        if newValue > max_pheromone:
+            newValue = max_pheromone
+        
+        self.pheromone[current_customer,next_customer] = newValue
     
     def validateSollution(self, solution):
         self.solutionValidator.validateSollution(solution)
 
-    #### ELITIST:
+    #### ELITIST: In every iteration pheromone on best Solution path is increased 
     def Elitist(self, maxIter:int, maxPathLength:int, maxCapacity:int, alpha:float, beta:float, antsQ:int)->None:
         n = self.graph.size
         self.alpha = alpha
@@ -105,19 +112,48 @@ class AntColognyySolver:
         self.maxPathLength = maxPathLength
         self.maxCapacity = maxCapacity 
         self.pheromone = np.ones((n,n))
-        solutionList = []
+        #solutionList = []
         bestSollution = (float("inf"),None)
         for i in range(maxIter):
-            antSollution = []
+            #antSollution = []
             for ant in range(antsQ):
                 solution = self.ant_sollution()
                 rate = self.solutionValidator.rateSolution(solution)
                 if rate < bestSollution[0]:
                     bestSollution = (rate,solution)
-                antSollution.append((rate,solution))
+                #antSollution.append((rate,solution))
             for i in range(n):
                 for j in range(n):
-                    self.updatePheromone(i, j, antSollution)
-            solutionList += antSollution
+                    self.updatePheromone(i, j, [bestSollution])
+            #solutionList += antSollution
+        return bestSollution
+    
+    #### MAX-MIN: In every iteration pheromone on best Solution path in iteration is increased 
+    def MaxMin(self, maxIter:int, maxPathLength:int, maxCapacity:int, alpha:float, beta:float, antsQ:int)->None:
+        max_pheromone = 2
+        min_pheromone = 0.5
+        n = self.graph.size
+        self.alpha = alpha
+        self.beta = beta
+        self.maxPathLength = maxPathLength
+        self.maxCapacity = maxCapacity 
+        self.pheromone = np.ones((n,n))
+        #solutionList = []
+        bestSollution = (float("inf"),None)
+        for i in range(maxIter):
+            #antSollution = []
+            localBestSollution = (float("inf"),None)
+            for ant in range(antsQ):
+                solution = self.ant_sollution()
+                rate = self.solutionValidator.rateSolution(solution)
+                if rate < localBestSollution[0]:
+                    localBestSollution = (rate,solution)
+                #antSollution.append((rate,solution))
+            for i in range(n):
+                for j in range(n):
+                    self.updatePheromone(i, j, [localBestSollution], min_pheromone, max_pheromone)
+            if localBestSollution[0] < bestSollution[0]:
+                    bestSollution = localBestSollution
+            #solutionList += antSollution
         return bestSollution
         

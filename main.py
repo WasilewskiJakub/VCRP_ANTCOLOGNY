@@ -3,14 +3,34 @@ import numpy as np
 import random
 from ACO import *
 from brutal import *
+import time
 
 print("Ant Cologny Algorithm")
-g = Graph(22)
+g = Graph(25)
 ACO = AntColognyySolver(g)
+BRUTAL = CVRP_Brutal(g)
 solver = SolutionValidator(g)
-#g.printGraph()
-solver.validateSollution(ACO.Simple(18,30,40,0.8,0,12))
-brutal = CVRP_Brutal(g)
-solver.validateSollution(brutal.findSolution(40))
+print("Brutal:")
+start_time = time.time()
+solver.validateSollution(BRUTAL.findSolution(40))
+elapsed_time = time.time() - start_time
+print("Time:", elapsed_time, "s")
 
+print("ACO SIMPLE:")
+start_time = time.time()
+solver.validateSollution(ACO.Simple(28,30,40,0.8,0.3,10))
+elapsed_time = time.time() - start_time
+print("Time:", elapsed_time, "s")
+
+print("ACO ELITIST:")
+start_time = time.time()
+solver.validateSollution(ACO.Elitist(28,30,40,0.8,0.3,10))
+elapsed_time = time.time() - start_time
+print("Time:", elapsed_time, "s")
+
+print("ACO MAX-MIN:")
+start_time = time.time()
+solver.validateSollution(ACO.MaxMin(28,30,40,0.8,0.3,10))
+elapsed_time = time.time() - start_time
+print("Time:", elapsed_time, "s")
 
