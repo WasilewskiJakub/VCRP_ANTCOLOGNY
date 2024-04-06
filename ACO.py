@@ -58,7 +58,8 @@ class AntColognyySolver:
                 probabilities/=np.sum(probabilities)
                 
                 next_customer = np.random.choice(unvisited, p=probabilities)
-                capacity -= self.graph.edges[current_customer][next_customer]
+                # capacity -= self.graph.edges[current_customer][next_customer]
+                capacity -= self.graph.vertex[next_customer]
 
                 # truck must have enough capacity to deliver order to client
                 if(capacity > 0):
